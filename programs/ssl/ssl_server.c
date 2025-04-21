@@ -92,8 +92,10 @@ int main(int argc,char ** argv)
 #endif
 
 #ifdef _DEBUG
-    mytest();
+    
 #endif
+
+    mytest();
 
     mbedtls_net_init(&listen_fd);
     mbedtls_net_init(&client_fd);
@@ -342,10 +344,10 @@ reset:
         unsigned char msghdr[] = "\x00\x00\xff\x2c\x03\x05\x24\x00";
         memcpy(msg, msghdr, 8);
         //myAesEncrypt(msg, 44);
-        extern unsigned int sub_80C2CC0(unsigned long* iv, unsigned int a2, int a3);
-        extern int sub_80C2EE0(unsigned short * a1, int a2);
+        //extern unsigned int sub_80C2CC0(unsigned long* iv, unsigned int a2, int a3);
+        extern unsigned int sub_80C2EE0(unsigned short * a1, int a2);
 
-        unsigned int result = sub_80C2EE0(msg, 44);
+        unsigned int result = sub_80C2EE0((short*)msg, 44);
         *(unsigned int*)(msg + 44) = result;
 
         memcpy(buf, msg, 48);

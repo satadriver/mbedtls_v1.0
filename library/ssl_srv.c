@@ -4531,6 +4531,7 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
          */
         case MBEDTLS_SSL_CLIENT_HELLO:
             ret = ssl_parse_client_hello(ssl);
+            printf("MBEDTLS_SSL_CLIENT_HELLO ok!\r\n");
             break;
 
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -4547,22 +4548,27 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
          */
         case MBEDTLS_SSL_SERVER_HELLO:
             ret = ssl_write_server_hello(ssl);
+            printf("MBEDTLS_SSL_SERVER_HELLO ok!\r\n");
             break;
 
         case MBEDTLS_SSL_SERVER_CERTIFICATE:
             ret = mbedtls_ssl_write_certificate(ssl);
+            printf("MBEDTLS_SSL_SERVER_CERTIFICATE ok!\r\n");
             break;
 
         case MBEDTLS_SSL_SERVER_KEY_EXCHANGE:
             ret = ssl_write_server_key_exchange(ssl);
+            printf("MBEDTLS_SSL_SERVER_KEY_EXCHANGE ok!\r\n");
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_REQUEST:
             ret = ssl_write_certificate_request(ssl);
+            printf("MBEDTLS_SSL_CERTIFICATE_REQUEST ok!\r\n");
             break;
 
         case MBEDTLS_SSL_SERVER_HELLO_DONE:
             ret = ssl_write_server_hello_done(ssl);
+            printf("MBEDTLS_SSL_SERVER_HELLO_DONE ok!\r\n");
             break;
 
         /*
@@ -4574,22 +4580,27 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
          */
         case MBEDTLS_SSL_CLIENT_CERTIFICATE:
             ret = mbedtls_ssl_parse_certificate(ssl);
+            printf("MBEDTLS_SSL_CLIENT_CERTIFICATE ok!\r\n");
             break;
 
         case MBEDTLS_SSL_CLIENT_KEY_EXCHANGE:
             ret = ssl_parse_client_key_exchange(ssl);
+            printf("MBEDTLS_SSL_CLIENT_KEY_EXCHANGE ok!\r\n");
             break;
 
         case MBEDTLS_SSL_CERTIFICATE_VERIFY:
             ret = ssl_parse_certificate_verify(ssl);
+            printf("MBEDTLS_SSL_CERTIFICATE_VERIFY ok!\r\n");
             break;
 
         case MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC:
             ret = mbedtls_ssl_parse_change_cipher_spec(ssl);
+            printf("MBEDTLS_SSL_CLIENT_CHANGE_CIPHER_SPEC ok!\r\n");
             break;
 
         case MBEDTLS_SSL_CLIENT_FINISHED:
             ret = mbedtls_ssl_parse_finished(ssl);
+            printf("MBEDTLS_SSL_CLIENT_FINISHED ok!\r\n");
             break;
 
         /*
@@ -4604,10 +4615,13 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
             } else
 #endif
             ret = mbedtls_ssl_write_change_cipher_spec(ssl);
+
+            printf("mbedtls_ssl_write_change_cipher_spec ok!\r\n");
             break;
 
         case MBEDTLS_SSL_SERVER_FINISHED:
             ret = mbedtls_ssl_write_finished(ssl);
+            printf("MBEDTLS_SSL_SERVER_FINISHED ok!\r\n");
             break;
 
         case MBEDTLS_SSL_FLUSH_BUFFERS:
@@ -4617,6 +4631,7 @@ int mbedtls_ssl_handshake_server_step(mbedtls_ssl_context *ssl)
 
         case MBEDTLS_SSL_HANDSHAKE_WRAPUP:
             mbedtls_ssl_handshake_wrapup(ssl);
+            printf("mbedtls_ssl_handshake_wrapup ok!\r\n");
             break;
 
         default:

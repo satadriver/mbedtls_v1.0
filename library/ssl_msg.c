@@ -935,7 +935,10 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
 #endif /* MBEDTLS_GCM_C || MBEDTLS_CCM_C || MBEDTLS_CHACHAPOLY_C */
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
     if (mode == MBEDTLS_MODE_CBC) {
-        extern unsigned int  sub_80C2CC0(unsigned long* a1, mbedtls_ssl_context* ssl, unsigned int a2, int a3);
+
+        printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+
+        extern unsigned int  sub_80C2CC0(unsigned long* a1, mbedtls_ssl_context* ssl, char* a2, int a3);
 
         extern void myAesEncrypt(mbedtls_ssl_context* ssl, char* data, int size);
 
@@ -963,12 +966,12 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
             else if (rec->type == 23)
             {
 
-                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(unsigned int) data,(int) rec->data_len);
+                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(char*) data,(int) rec->data_len);
             	printf("ljg encryption packet type:%d,size:%d\r\n", rec->type,(int)rec->data_len);
 	    }
             else {
 
-                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(unsigned int) data, (int)rec->data_len);
+                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(char*) data, (int)rec->data_len);
                 printf("ljg encryption packet type:%d,size:%d\r\n", rec->type,(int)rec->data_len);
             }
 
@@ -1164,6 +1167,8 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
     ((void) ssl);
 #endif
 
+    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> decrypt buf"));
     if (rec == NULL                     ||
         rec->buf == NULL                ||
@@ -1316,6 +1321,8 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
     if (mode == MBEDTLS_MODE_CBC) {
         if (ssl->g_my_tlsv10_tag) {
 
+            printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+
             auth_done = 1;
 
             olen = rec->data_len;
@@ -1334,24 +1341,49 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                 goto __EncryptedHandshakeMessage;
             }
             else if (data[-5] == 0x17) {
-                extern unsigned int sub_80C2D80(unsigned int iv, mbedtls_ssl_context * ssl, unsigned int a2, int a3);
+                extern unsigned int sub_80C2D80(char* iv, mbedtls_ssl_context * ssl, char* a2, int a3);
 
-                sub_80C2D80((unsigned int)ssl->g_aes_dec_iv, ssl,(unsigned int) data, 16);
-                sub_80C2D80((unsigned int)ssl->g_aes_dec_iv, ssl, (unsigned int)data + 16,(int) rec->data_len - 16);
-                extern int  sub_80C2EE0(unsigned short* a1, int a2);
+                sub_80C2D80((char*)ssl->g_aes_dec_iv, ssl,(char*) data, 16);
+                sub_80C2D80((char*)ssl->g_aes_dec_iv, ssl, (char*)data + 16,(int) rec->data_len - 16);
+                extern unsigned int  sub_80C2EE0(unsigned short* a1, int a2);
                 unsigned int myret = sub_80C2EE0((unsigned short*)data, (int)rec->data_len - 4);
                 unsigned int checksum = (data[rec->data_len - 1] << 24) | data[rec->data_len - 4] |
                     (data[rec->data_len - 2] << 16) | (data[rec->data_len - 3] << 8);
                 if (checksum != myret) {
-                    printf("ljg decrypt checksum error\r\n");
+                    printf("ljg decrypt checksum error,expected:%x,current:%x\r\n",checksum,myret);
                 }
                 else {
                     printf("ljg decrypt checksum ok\r\n");
                 }
+
+                int cnt = rec->data_len / 16;
+
+                for (int n = 0; n < cnt; n++) {
+                    for (int i = 0; i < 16; i++) {
+                        printf("%02x ", data[n * 16+i]);
+                    }
+                    printf("\t\t");
+                    for (int i = 0; i < 16; i++) {
+                        printf("%c ", data[n * 16 + i]);
+                    }
+                    printf("\r\n");
+                }
+
+                int mod = rec->data_len % 16;
+                for (int i = 0; i < mod; i++) {
+                    printf("%02x ", data[cnt * 16 + i]);
+                }
+                printf("\t\t");
+                for (int i = 0; i < 16; i++) {
+                    printf("%c ", data[cnt * 16 + i]);
+                }
+                printf("\r\n");
             }
             else {
                 printf("ljg decrypt tls command:%d error\r\n", rec->type);
             }
+
+            printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
         }
         else {
             size_t minlen = 0;
@@ -1737,6 +1769,8 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                 MBEDTLS_SSL_DEBUG_MSG(1, ("message mac does not match"));
 #endif
                 correct = 0;
+                printf("error!message mac does not match\r\n");
+                printf("mac check error\r\n");
             }
             auth_done++;
 
@@ -3757,6 +3791,9 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
             done = 1;
         }
     }
+
+    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if (!done && ssl->transform_in != NULL) {
         unsigned char const old_msg_type = rec->type;
@@ -4560,6 +4597,8 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
         return ret;
     }
 
+    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+
     ret = ssl_parse_record_header(ssl, ssl->in_hdr, ssl->in_left, &rec);
     if (ret != 0) {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
@@ -4644,6 +4683,8 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
     /*
      * Decrypt record contents.
      */
+
+    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
     if ((ret = ssl_prepare_record_content(ssl, &rec)) != 0) {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

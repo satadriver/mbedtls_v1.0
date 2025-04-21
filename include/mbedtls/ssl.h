@@ -1259,12 +1259,26 @@ struct mbedtls_ssl_config {
 
 struct mbedtls_ssl_context {
     int g_my_tlsv10_tag;
+#ifdef _WIN32
 #pragma pack(16)
     __m128i g_aes_dec_key[256];
     __m128i g_aes_enc_key[256];
     unsigned char g_aes_dec_iv[64];
     unsigned char g_aes_enc_iv[64];
+#elif defined __linux__
+    __m128i g_aes_dec_key[256] __attribute__((aligned(16)));
+    __m128i g_aes_enc_key[256] __attribute__((aligned(16)));
+    unsigned char g_aes_dec_iv[64] __attribute__((aligned(16)));
+    unsigned char g_aes_enc_iv[64] __attribute__((aligned(16)));
+#else
+#endif
+
+#ifdef _WIN32
 #pragma pack()
+#elif defined __linux__
+#else
+#endif
+
     const mbedtls_ssl_config *conf; /*!< configuration information          */
 
     /*
