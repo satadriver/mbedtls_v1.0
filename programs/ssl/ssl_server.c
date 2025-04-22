@@ -95,7 +95,7 @@ int main(int argc,char ** argv)
     
 #endif
 
-    mytest();
+    //mytest();
 
     mbedtls_net_init(&listen_fd);
     mbedtls_net_init(&client_fd);

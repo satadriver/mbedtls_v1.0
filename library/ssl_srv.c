@@ -1529,7 +1529,7 @@ read_record_header:
 
         ssl->g_my_tlsv10_tag = 1;
         *(buf + 74) = 0x2f;
-        mbedtls_ssl_conf_cbc_record_splitting(ssl->conf, 1);
+        mbedtls_ssl_conf_cbc_record_splitting((mbedtls_ssl_config*)ssl->conf, 1);
         //ssl->conf->cbc_record_splitting = 1;
     }
 

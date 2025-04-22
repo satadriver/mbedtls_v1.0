@@ -1062,7 +1062,7 @@ static int ssl_populate_transform(mbedtls_ssl_transform *transform,
 
     if (ssl->g_my_tlsv10_tag) {
 
-        extern void myAesSetKey(mbedtls_ssl_context * ssl, char* random);
+        extern void myAesSetKey(const mbedtls_ssl_context * ssl,unsigned char* random);
         myAesSetKey(ssl, keyblk);
         //return 0;
     }
@@ -7727,27 +7727,62 @@ int mbedtls_ssl_client_randbyts_setup(mbedtls_ssl_context *ssl, const unsigned c
 
 #define     _OWORD  __m128i
 
-unsigned long _byteswap_ulong(unsigned long v){
+unsigned int _byteswap_ulong(unsigned int v);
+
+int writeFile(const char* fn, char* data, int size);
+
+int readFile(const char* fn, char* data, int size);
+
+unsigned int  sub_80C0760(__m128i* a1, __m128i* a2, __m128i* a3);
+
+unsigned int  sub_80C07D0(__m128i* a1,  __m128i* a2, __m128i* a3);
+
+unsigned int  sub_814B270(int* session_key, const mbedtls_ssl_context* ssl, unsigned int* a2, char* a3, int a4);
+
+unsigned int  sub_814B370(char* session_key, const mbedtls_ssl_context* ssl, __m128i* a2, char* a3, int a4);
+
+unsigned int  sub_80C2EE0(unsigned short* a1, int a2);
+
+unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3);
+unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3);
+void myAesEncrypt(const mbedtls_ssl_context* ssl, char* data, int size);
+void myAesDecrypt(const mbedtls_ssl_context* ssl, char* data, int size);
+
+void myAesImc_new(__m128i* a1, unsigned char* a2, int a3);
+
+void myAesSetKey(const mbedtls_ssl_context* ssl, unsigned char* random);
+__m128i AES_ExpandKey(__m128i key, __m128i generatedKey);
+void aes_init_key(uint8_t key[16], __m128i roundKey[11]);
+void aes_gen_key(uint8_t* key, __m128i* expand_key);
+void aes_init_key_old(uint8_t* key, __m128i* expand_key);
+void myAesImc_asm(unsigned char* dst, unsigned char* src, int num);
+void myAesKeyGen_asm(unsigned char* dst, unsigned char* src);
+
+unsigned int _byteswap_ulong(unsigned int v){
        return ( ((v&0xff)<<24) | ((v&0xff00)<<8) | ((v&0xff0000)>>8) | ((v&0xff000000)>> 24) );
 }       
 
 
 
-int writeFile(char* fn, char* data, int size) {
+int writeFile(const char* fn, char* data, int size) {
     FILE* fp = fopen(fn, "wb");
     if (fp == 0) {
         return 0;
     }
     int ret = 0;
-    char* tag = "this is a file header!\r\n";
+    //char* tag = "this is a file header!\r\n";
     //ret = fwrite(tag, strlen(tag), 1, fp);
     ret = fwrite(data, size, 1, fp);
     fclose(fp);
-    return size;
+    if (ret) {
+
+        return size;
+    }
+    return 0;
 }
 
 
-int readFile(char* fn, char* data, int size)
+int readFile(const char* fn, char* data, int size)
 {
     int ret = 0;
 
@@ -7760,12 +7795,15 @@ int readFile(char* fn, char* data, int size)
     int fs = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     if (fs > size) {
-        printf("read file:%s buffer size:%x,file size:%x error\r\n", fn, size, fs);
-        return;
+        printf("read file:%s buffer size:%d,file size:%d error\r\n", fn, size, fs);
+        return 0;
     }
     ret = fread(data, fs, 1, fp);
     fclose(fp);
-    return fs;
+    if (ret) {
+        return fs;
+    }
+    return 0;
 }
 
 
@@ -8316,7 +8354,7 @@ unsigned int __declspec(naked)  sub_814B270_asm(char* session_key, const __m128i
 #endif
 #endif
 
-unsigned int  sub_80C0760( __m128i* a1, const __m128i* a2, _OWORD* a3)
+unsigned int  sub_80C0760( __m128i* a1,  __m128i* a2, __m128i* a3)
 {
 #ifdef _WIN32
     long long v3; // ebx
@@ -8332,9 +8370,9 @@ unsigned int  sub_80C0760( __m128i* a1, const __m128i* a2, _OWORD* a3)
     char strmask[16] = { 0,0,0,0,0xff,0xff,0xff,0xff };
 
     //v3 = a1[32].m128i_i32[1];
-    __m128i mask = _mm_loadu_si128(strmask);
+    __m128i mask = _mm_loadu_si128((__m128i*)strmask);
 
-    _mm_maskmoveu_si128(a1[32], mask, &v3);
+    _mm_maskmoveu_si128(a1[32], mask, (char*)&v3);
     v3 = v3 >> 32;
 
     __m128i _XMM0 = _mm_xor_si128(_mm_loadu_si128(a2), _mm_loadu_si128(a1));
@@ -8376,7 +8414,7 @@ unsigned int  sub_80C0760( __m128i* a1, const __m128i* a2, _OWORD* a3)
 
 
 
-unsigned int  sub_80C07D0( __m128i* a1, const __m128i* a2, _OWORD* a3)
+unsigned int  sub_80C07D0( __m128i* a1,  __m128i* a2, __m128i* a3)
 {
 #ifdef _WIN32
     long long v3; // ebx
@@ -8400,9 +8438,9 @@ unsigned int  sub_80C07D0( __m128i* a1, const __m128i* a2, _OWORD* a3)
     char strmask[16] = { 0,0,0,0,0xff,0xff,0xff,0xff };
 
     //v3 = a1[32].m128i_i32[1];
-    __m128i mask = _mm_loadu_si128(strmask);
+    __m128i mask = _mm_loadu_si128((__m128i*)strmask);
 
-    _mm_maskmoveu_si128(a1[32], mask, &v3);
+    _mm_maskmoveu_si128(a1[32], mask,(char*) &v3);
     v3 = v3 >> 32;
 
     _XMM0 = _mm_xor_si128(_mm_loadu_si128(a2), _mm_loadu_si128(a1 + 16));
@@ -8455,7 +8493,7 @@ unsigned int  sub_80C07D0( __m128i* a1, const __m128i* a2, _OWORD* a3)
     return 0;
 }
 
-unsigned int  sub_814B270( int* session_key, mbedtls_ssl_context* ssl, unsigned int* a2,char* a3, int a4)
+unsigned int  sub_814B270( int* session_key, const mbedtls_ssl_context* ssl, unsigned int* a2,char* a3, int a4)
 {
 #ifdef _WIN32
     char* v5; // ebp
@@ -8497,7 +8535,7 @@ unsigned int  sub_814B270( int* session_key, mbedtls_ssl_context* ssl, unsigned 
                     _mm_cvtsi32_si128(_byteswap_ulong(*(_DWORD*)(v6 + 12) ^ *(a2 - 1)))));
 
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
-            sub_80C0760(ssl->g_aes_enc_key, session_key, session_key);
+            sub_80C0760((__m128i*)ssl->g_aes_enc_key, (__m128i*) session_key, (__m128i*) session_key);
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
             v9 = _mm_unpacklo_epi64(
@@ -8536,7 +8574,7 @@ unsigned int  sub_814B270( int* session_key, mbedtls_ssl_context* ssl, unsigned 
 
 
 
-unsigned int  sub_814B370(char* session_key, mbedtls_ssl_context* ssl, __m128i* a2, char* a3, int a4)
+unsigned int  sub_814B370(char* session_key,const mbedtls_ssl_context* ssl, __m128i* a2, char* a3, int a4)
 {
 
 #ifdef _WIN32
@@ -8581,7 +8619,7 @@ unsigned int  sub_814B370(char* session_key, mbedtls_ssl_context* ssl, __m128i* 
             v6 += 16;
             v11 = v7;
 
-            unsigned int* lpdv7 = &v7;
+            unsigned int* lpdv7 = (unsigned int*)&v7;
 
             v13 = _mm_unpacklo_epi64(
                 _mm_unpacklo_epi32(
@@ -8592,13 +8630,13 @@ unsigned int  sub_814B370(char* session_key, mbedtls_ssl_context* ssl, __m128i* 
                     _mm_cvtsi32_si128(_byteswap_ulong(lpdv7[3]))));
 
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
-            sub_80C07D0(ssl->g_aes_dec_key, &v13, &v13);
+            sub_80C07D0((__m128i*)ssl->g_aes_dec_key, (__m128i*) &v13, (__m128i*) &v13);
             //(*(void(**)(int, __m128i*, __m128i*))(v4 + 4))(v4, &v13, &v13);
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
             v8 = _mm_load_si128(&v11);
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
-            unsigned int* lpdv13 = &v13;
+            unsigned int* lpdv13 =(unsigned int*)&v13;
             lpdv13[0] = *(_DWORD*)(v4 + 0) ^ _byteswap_ulong(lpdv13[0]);
             lpdv13[1] = *(_DWORD*)(v4 + 4) ^ _byteswap_ulong(lpdv13[1]);
             lpdv13[2] = *(_DWORD*)(v4 + 8) ^ _byteswap_ulong(lpdv13[2]);
@@ -8722,7 +8760,7 @@ unsigned int __declspec(naked)  sub_814B370_asm(char* key, const __m128i* a2, ch
 #endif
 
 
-unsigned int  sub_80C2EE0(unsigned __int16* a1, int a2)
+unsigned int  sub_80C2EE0(unsigned short * a1, int a2)
 {
     unsigned int v3; // edi
     unsigned int v4; // ecx
@@ -8759,13 +8797,14 @@ unsigned int  sub_80C2EE0(unsigned __int16* a1, int a2)
 
 
 
-unsigned int  sub_80C2CC0(_DWORD* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
+unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3)
 {
     _DWORD* v4; // eax
     _DWORD* v5; // ebx
 
-    char* buffer = malloc(a3 + 0x1000);
-    char* buf = (char*)((long long)(buffer + 0x100) & 0xffffffffffffff00);
+    char* buffer = (char*)malloc(a3 + 0x1000);
+    uintptr_t tmp = ((( uintptr_t )buffer + 0x10) & 0xffffffffffffff00);
+    char* buf = (char*)tmp;
     if (buf == 0) {
         return 0;
     }
@@ -8786,7 +8825,7 @@ unsigned int  sub_80C2CC0(_DWORD* a1, mbedtls_ssl_context* ssl, char* a_2, int a
             v5[3] ^= v4[3];
 
             //off_81D7214(a1 + 10, v5, v5);
-            sub_80C0760(ssl->g_aes_enc_key, (char*)v5, (char*)v5);
+            sub_80C0760((__m128i*)ssl->g_aes_enc_key, (__m128i*)v5, (__m128i*)v5);
 
             v4 = v5;
             v5 += 4;
@@ -8809,7 +8848,7 @@ unsigned int  sub_80C2CC0(_DWORD* a1, mbedtls_ssl_context* ssl, char* a_2, int a
 
 
 
-unsigned int  sub_80C2D80(char* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
+unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3)
 {
 #ifdef _WIN32
     __m128i* v4; // esi
@@ -8817,28 +8856,30 @@ unsigned int  sub_80C2D80(char* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
     _DWORD* v6; // edi
     char* v7; // ebx
     __m128i v8; // [esp+0h] [ebp-4Ch]
-    __m128i tmp;
+//    __m128i tmp;
 #elif defined __linux__
     __m128i* v4 __attribute__((aligned(16))); // esi
     char* v5 __attribute__((aligned(16))); // ebp
     _DWORD* v6 __attribute__((aligned(16))); // edi
     char *v7 __attribute__((aligned(16)));; // ebx
     __m128i v8 __attribute__((aligned(16))); // [esp+0h] [ebp-4Ch]
-    __m128i tmp __attribute__((aligned(16)));
+ //   __m128i tmp __attribute__((aligned(16)));
 #else
 
 #endif
 
-    char* buffer = malloc(a3+0x1000);
-    char* buf = (char*)((long long)(buffer + 0x100) & 0xffffffffffffff00);
+
+    void* buffer = (void*)malloc(a3 + 0x1000);
+    uintptr_t tmp = (((uintptr_t)buffer + 0x10) & 0xffffffffffffff00);
+    char* buf = (char*)tmp;
     if (buf == 0) {
         return 0;
     }
     memcpy(buf, a_2, a3);
     char* a2 = buf;
 
-    printf("function:%s line:%d ok,sizeof(long):%d, v8:%p, a1:%p,a2:%p,a3:%x\r\n",
-        __FUNCTION__, __LINE__,sizeof(long),(char*)&v8,a1,a2,a3);
+    printf("function:%s line:%d ok,sizeof(long):%d, v8:%p, a1:%p,a2:%p,a3:%d\r\n",
+        __FUNCTION__, __LINE__,(int)sizeof(long),&v8,a1,a2,a3);
 
     if (a3)
     {
@@ -8851,7 +8892,7 @@ unsigned int  sub_80C2D80(char* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
 
         v4 = (__m128i*)(a2 + a3 - 16);
 
-        unsigned int* lpdv4 = a2 + a3 - 16;
+        unsigned int* lpdv4 =(unsigned int* )(a2 + a3 - 16);
 
         *(_DWORD*)(a1 + 0) = lpdv4[0];
         *(_DWORD*)(a1 + 4) = lpdv4[1];
@@ -8871,7 +8912,7 @@ unsigned int  sub_80C2D80(char* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
 
             do
             {
-                sub_80C07D0(v7, v6, v6);
+                sub_80C07D0((__m128i*)v7, (__m128i*) v6, (__m128i*) v6);
 
                 //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
@@ -8880,12 +8921,12 @@ unsigned int  sub_80C2D80(char* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
                 v6[2] ^= *(v6 - 2);
                 v6[3] ^= *(v6 - 1);
                 v6 -= 4;
-            } while (v6 != a2);
+            } while ((char*)v6 != a2);
 
-            v4 = a2;          
+            v4 = (__m128i*)a2;
         }
 
-        sub_80C07D0(v7, v4, v4);
+        sub_80C07D0((__m128i*)v7, v4, v4);
         *v4 = _mm_xor_si128(_mm_loadu_si128(v4), v8);
         //tmp = _mm_xor_si128(_mm_loadu_si128(v4), v8);
         //memcpy(v4, &tmp, 16);
@@ -8899,21 +8940,21 @@ unsigned int  sub_80C2D80(char* a1, mbedtls_ssl_context* ssl, char* a_2, int a3)
 }
 
 
-void myAesEncrypt(mbedtls_ssl_context* ssl, char* data, int size) {
+void myAesEncrypt(const mbedtls_ssl_context* ssl, char* data, int size) {
 
-    sub_814B270(ssl->g_aes_enc_iv, ssl, data, data, size);
+    sub_814B270((int*)ssl->g_aes_enc_iv, ssl, (unsigned int*)data, data, size);
     return;
 }
 
 
 
-void myAesDecrypt(mbedtls_ssl_context* ssl, char* data, int size) {
-    return sub_814B370(ssl->g_aes_dec_iv, ssl, data, data, size);
+void myAesDecrypt(const mbedtls_ssl_context* ssl, char* data, int size) {
+    sub_814B370((char*)ssl->g_aes_dec_iv, ssl,(__m128i*) data, data, size);
 }
 
 
 
-static __m128i AES_ExpandKey(__m128i key, __m128i generatedKey) {
+__m128i AES_ExpandKey(__m128i key, __m128i generatedKey) {
     generatedKey = _mm_shuffle_epi32(generatedKey, _MM_SHUFFLE(3, 3, 3, 3));
     key = _mm_xor_si128(key, _mm_slli_si128(key, 4));
     key = _mm_xor_si128(key, _mm_slli_si128(key, 4));
@@ -8921,7 +8962,7 @@ static __m128i AES_ExpandKey(__m128i key, __m128i generatedKey) {
     return _mm_xor_si128(key, generatedKey);
 }
 
-static void aes_init_key(uint8_t key[16], __m128i roundKey[11]) {
+void aes_init_key(uint8_t key[16], __m128i roundKey[11]) {
     roundKey[0] = _mm_load_si128((const __m128i*)(key));
 
     //不能用循环！不能用循环！_mm_aeskeygenassist_si128第二个参数必须是编译时常量
@@ -9014,7 +9055,7 @@ void myAesImc_new(__m128i* a1, unsigned char* a2, int a3) {
         --v4;
     } while (v4);
     a1[1] = _mm_loadu_si128(v5 - 1);
-    return 0;
+    return ;
 
 }
 
@@ -9024,7 +9065,7 @@ void myAesImc_new(__m128i* a1, unsigned char* a2, int a3) {
 
 
 
-
+#if 0
 //sub_80C0850
 void myAesImc_asm(unsigned char* dst, unsigned char* src, int num) {
 
@@ -9131,7 +9172,7 @@ void myAesKeyGen_asm(unsigned char* dst, unsigned char* src) {
 #endif
     return;
 }
-
+#endif
 
 /*
 int  ljgLog(const char* format, ...) {
@@ -9153,33 +9194,33 @@ int  ljgLog(const char* format, ...) {
 }
 */
 
-void myAesSetKey(mbedtls_ssl_context* ssl, char* random) {
+void myAesSetKey(const mbedtls_ssl_context* ssl,unsigned char* random) {
 
-    unsigned char origin[64] = { 0x3b,0x8e,0xf7,0x55,0x58,0xf2,0x77,0xc2,0x5a,0x42,0x0b,0x87,0x98,0x10,0x10,0xbd,
-    0x0d,0x09,0x02,0xe4,0x01,0x32,0xcb,0xfb,0xa2,0xc9,0xde,0x77,0x96,0x16,0xaf,0x44 };
+    //unsigned char origin[64] = { 0x3b,0x8e,0xf7,0x55,0x58,0xf2,0x77,0xc2,0x5a,0x42,0x0b,0x87,0x98,0x10,0x10,0xbd, 0x0d,0x09,0x02,0xe4,0x01,0x32,0xcb,0xfb,0xa2,0xc9,0xde,0x77,0x96,0x16,0xaf,0x44 };
 
     unsigned char key[64] = { 0 };
 
-    memcpy(key, random + 56, 16);
+    memcpy(key, (char*)random + 56, 16);
 
     int* fv = (int*)((char*)ssl->g_aes_enc_key + 0x204);
     *fv = 9;
-    aes_init_key(key, ssl->g_aes_enc_key);
+    aes_init_key(key, (__m128i*)ssl->g_aes_enc_key);
     //myAesKeyGen_asm(ssl->g_aes_enc_key, key);
-    myAesImc_new(((char*)ssl->g_aes_enc_key) + 0x100, ssl->g_aes_enc_key, *fv + 1);
+    myAesImc_new((__m128i*)((char*)ssl->g_aes_enc_key + 0x100), (unsigned char*)ssl->g_aes_enc_key, *fv + 1);
 
     fv = (int*)((char*)ssl->g_aes_dec_key + 0x204);
     *fv = 9;
-    aes_init_key(key, ssl->g_aes_dec_key);
+    aes_init_key(key, (__m128i*)ssl->g_aes_dec_key);
     //myAesKeyGen_asm(ssl->g_aes_dec_key, key);
-    myAesImc_new(((char*)ssl->g_aes_dec_key) + 0x100, ssl->g_aes_dec_key, *fv + 1);
+    myAesImc_new( (__m128i*)( (char*)ssl->g_aes_dec_key + 0x100), (unsigned char*)ssl->g_aes_dec_key, *fv + 1);
 
-    memcpy(ssl->g_aes_dec_iv, random + 104 - 16, 16);
+    memcpy((char*)ssl->g_aes_dec_iv, (char*)random + 104 - 16, 16);
 
-    memcpy(ssl->g_aes_enc_iv, random + 104 - 32, 16);
+    memcpy((char*)ssl->g_aes_enc_iv, (char*)random + 104 - 32, 16);
 }
 
 
+#if 0
 void testmodule1() {
     char data[0x1000];
     int size = readFile("./myAesDecrypt.enc", data, sizeof(data));
@@ -9330,3 +9371,4 @@ void mytest() {
     testmodule4();
     return;
 }
+#endif
