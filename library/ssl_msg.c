@@ -958,16 +958,28 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                 if (rec->data_len != 48) {
                     printf("ljg encryption error size:%d\r\n", (unsigned int)rec->data_len);
                 }
+
+                writeFile("./myAesEncrypt.dec", data, rec->data_len);
+                writeFile("./myAesEncrypt.iv", (char*)ssl->g_aes_enc_iv, 16);
+                writeFile("./myAesEncrypt.key", (char*)ssl->g_aes_enc_key, 1024);
+
                 myAesEncrypt(ssl, (char*)data,(int) rec->data_len);
 
                 //auth_done = 1;
                 //goto __EncryptedHandshakeMessage;
+
+                writeFile("./myAesEncrypt.enc", data, rec->data_len);
             }
             else if (rec->type == 23)
             {
+                writeFile("./sub_80C2CC0.dec", data, rec->data_len);
+                writeFile("./sub_80C2CC0.iv", (char*)ssl->g_aes_enc_iv, 16);
+                writeFile("./sub_80C2CC0.key", (char*)ssl->g_aes_enc_key, 1024);
 
                 sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(char*) data,(int) rec->data_len);
             	printf("ljg encryption packet type:%d,size:%d\r\n", rec->type,(int)rec->data_len);
+
+                writeFile("./sub_80C2CC0.enc", data, rec->data_len);
 	    }
             else {
 
@@ -1331,8 +1343,16 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                 if (*(unsigned short*)(data - 2) != 0x3000) {
                     printf("ljg encryption EncryptedHandshakeMessage size:%d error\r\n", (int)rec->data_len);
                 }
+
+                writeFile("./myAesDecrypt.enc", data, rec->data_len);
+
+                writeFile("./myAesDecrypt.iv", (char*)ssl->g_aes_dec_iv, 16);
+                writeFile("./myAesDecrypt.key", (char*)ssl->g_aes_dec_key, 1024);
+
                 extern void myAesDecrypt(mbedtls_ssl_context * ssl, char* data, int size);
                 myAesDecrypt(ssl, (char*)data,(int) rec->data_len);
+
+                writeFile("./myAesDecrypt.dec", data, rec->data_len);
 
                 auth_done = 0;
 
@@ -1341,12 +1361,18 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                 goto __EncryptedHandshakeMessage;
             }
             else if (data[-5] == 0x17) {
-                extern unsigned int sub_80C2D80(char* iv, mbedtls_ssl_context * ssl, char* a2, int a3);
+                extern unsigned int sub_80C2D80(char* iv,const mbedtls_ssl_context * ssl, char* a2, int a3);
+                extern int writeFile(char*, char*, int);
+                writeFile("./sub_80C2D80.enc", data, rec->data_len);
+
+                writeFile("./sub_80C2D80.iv", (char*)ssl->g_aes_dec_iv,16);
+                writeFile("./sub_80C2D80.key", (char*)ssl->g_aes_dec_key, 1024);
 
                 sub_80C2D80((char*)ssl->g_aes_dec_iv, ssl,(char*) data, 16);
                 sub_80C2D80((char*)ssl->g_aes_dec_iv, ssl, (char*)data + 16,(int) rec->data_len - 16);
                 extern unsigned int  sub_80C2EE0(unsigned short* a1, int a2);
                 unsigned int myret = sub_80C2EE0((unsigned short*)data, (int)rec->data_len - 4);
+                writeFile("./sub_80C2D80.dec", data, rec->data_len);
                 unsigned int checksum = (data[rec->data_len - 1] << 24) | data[rec->data_len - 4] |
                     (data[rec->data_len - 2] << 16) | (data[rec->data_len - 3] << 8);
                 if (checksum != myret) {
