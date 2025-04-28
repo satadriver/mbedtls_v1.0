@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9
+CMAKE_SOURCE_DIR = /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32
+CMAKE_BINARY_DIR = /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,9 +126,9 @@ install/local/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32/CMakeFiles /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32/CMakeFiles /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -221,45 +221,6 @@ mbedcrypto/fast:
 	$(MAKE) -f library/CMakeFiles/mbedcrypto.dir/build.make library/CMakeFiles/mbedcrypto.dir/build
 .PHONY : mbedcrypto/fast
 
-#=============================================================================
-# Target rules for targets named mbedtls_static
-
-# Build rule for target.
-mbedtls_static: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mbedtls_static
-.PHONY : mbedtls_static
-
-# fast build rule for target.
-mbedtls_static/fast:
-	$(MAKE) -f library/CMakeFiles/mbedtls_static.dir/build.make library/CMakeFiles/mbedtls_static.dir/build
-.PHONY : mbedtls_static/fast
-
-#=============================================================================
-# Target rules for targets named mbedx509_static
-
-# Build rule for target.
-mbedx509_static: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mbedx509_static
-.PHONY : mbedx509_static
-
-# fast build rule for target.
-mbedx509_static/fast:
-	$(MAKE) -f library/CMakeFiles/mbedx509_static.dir/build.make library/CMakeFiles/mbedx509_static.dir/build
-.PHONY : mbedx509_static/fast
-
-#=============================================================================
-# Target rules for targets named mbedcrypto_static
-
-# Build rule for target.
-mbedcrypto_static: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 mbedcrypto_static
-.PHONY : mbedcrypto_static
-
-# fast build rule for target.
-mbedcrypto_static/fast:
-	$(MAKE) -f library/CMakeFiles/mbedcrypto_static.dir/build.make library/CMakeFiles/mbedcrypto_static.dir/build
-.PHONY : mbedcrypto_static/fast
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -277,9 +238,6 @@ help:
 	@echo "... mbedtls"
 	@echo "... mbedx509"
 	@echo "... mbedcrypto"
-	@echo "... mbedtls_static"
-	@echo "... mbedx509_static"
-	@echo "... mbedcrypto_static"
 .PHONY : help
 
 

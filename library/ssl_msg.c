@@ -936,9 +936,9 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
 #if defined(MBEDTLS_SSL_SOME_SUITES_USE_CBC)
     if (mode == MBEDTLS_MODE_CBC) {
 
-        printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+        //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
-        extern unsigned int  sub_80C2CC0(unsigned long* a1, mbedtls_ssl_context* ssl, char* a2, int a3);
+        extern unsigned int  sub_80C2CC0(unsigned long* a1, char* key, char* a2, int a3);
 
         extern void myAesEncrypt(mbedtls_ssl_context* ssl, char* data, int size);
 
@@ -978,14 +978,14 @@ int mbedtls_ssl_encrypt_buf(mbedtls_ssl_context *ssl,
                 writeFile("./sub_80C2CC0.iv", (char*)ssl->g_aes_enc_iv, 16);
                 writeFile("./sub_80C2CC0.key", (char*)ssl->g_aes_enc_key, 1024);
 
-                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(char*) data,(int) rec->data_len);
+                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, (char*)ssl->g_aes_enc_key,(char*) data,(int) rec->data_len);
             	printf("ljg encryption packet type:%d,size:%d\r\n", rec->type,(int)rec->data_len);
 
                 writeFile("./sub_80C2CC0.enc", (char*)data, rec->data_len);
 	    }
             else {
 
-                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, ssl,(char*) data, (int)rec->data_len);
+                sub_80C2CC0((unsigned long*)ssl->g_aes_enc_iv, (char*)ssl->g_aes_enc_key,(char*) data, (int)rec->data_len);
                 printf("ljg encryption packet type:%d,size:%d\r\n", rec->type,(int)rec->data_len);
             }
 
@@ -1180,7 +1180,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
     ((void) ssl);
 #endif
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("=> decrypt buf"));
     if (rec == NULL                     ||
@@ -1334,7 +1334,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
     if (mode == MBEDTLS_MODE_CBC) {
         if (ssl->g_my_tlsv10_tag) {
 
-            printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+            //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
             auth_done = 1;
 
@@ -1362,15 +1362,15 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                 goto __EncryptedHandshakeMessage;
             }
             else if (data[-5] == 0x17) {
-                extern unsigned int sub_80C2D80(char* iv,const mbedtls_ssl_context * ssl, char* a2, int a3);
+                extern unsigned int sub_80C2D80(char* iv, char * key, char* a2, int a3);
                 
                 writeFile("./sub_80C2D80.enc", (char*)data, rec->data_len);
 
                 writeFile("./sub_80C2D80.iv", (char*)ssl->g_aes_dec_iv,16);
                 writeFile("./sub_80C2D80.key", (char*)ssl->g_aes_dec_key, 1024);
 
-                sub_80C2D80((char*)ssl->g_aes_dec_iv, ssl,(char*) data, 16);
-                sub_80C2D80((char*)ssl->g_aes_dec_iv, ssl, (char*)data + 16,(int) rec->data_len - 16);
+                sub_80C2D80((char*)ssl->g_aes_dec_iv, (char*)ssl->g_aes_dec_key,(char*) data, 16);
+                sub_80C2D80((char*)ssl->g_aes_dec_iv, (char*)ssl->g_aes_dec_key, (char*)data + 16,(int) rec->data_len - 16);
                 extern unsigned int  sub_80C2EE0(unsigned short* a1, int a2);
                 unsigned int myret = sub_80C2EE0((unsigned short*)data, (int)rec->data_len - 4);
                 writeFile("./sub_80C2D80.dec",(char*) data, rec->data_len);
@@ -1410,7 +1410,7 @@ int mbedtls_ssl_decrypt_buf(mbedtls_ssl_context const *ssl,
                 printf("ljg decrypt tls command:%d error\r\n", rec->type);
             }
 
-            printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+            //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
         }
         else {
             size_t minlen = 0;
@@ -2706,6 +2706,10 @@ int mbedtls_ssl_write_handshake_msg(mbedtls_ssl_context *ssl)
         }
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+        if (ssl->state == 2 && ssl->g_my_tlsv10_tag) {
+            ssl->out_msg[74] = 4;
+        }
+
         /* Update running hashes of handshake messages seen */
         if (hs_type != MBEDTLS_SSL_HS_HELLO_REQUEST) {
             ssl->handshake->update_checksum(ssl, ssl->out_msg, ssl->out_msglen);
@@ -3819,7 +3823,7 @@ static int ssl_prepare_record_content(mbedtls_ssl_context *ssl,
         }
     }
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
 #endif /* MBEDTLS_SSL_HW_RECORD_ACCEL */
     if (!done && ssl->transform_in != NULL) {
@@ -4624,7 +4628,7 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
         return ret;
     }
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
     ret = ssl_parse_record_header(ssl, ssl->in_hdr, ssl->in_left, &rec);
     if (ret != 0) {
@@ -4711,7 +4715,7 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
      * Decrypt record contents.
      */
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
     if ((ret = ssl_prepare_record_content(ssl, &rec)) != 0) {
 #if defined(MBEDTLS_SSL_PROTO_DTLS)

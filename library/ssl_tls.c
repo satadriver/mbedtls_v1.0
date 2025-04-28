@@ -3430,9 +3430,9 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
     mbedtls_ssl_update_out_pointers(ssl, ssl->transform_negotiate);
 
 
-    printf("function:%s line:%d ok!\r\n",__FUNCTION__,__LINE__);
+    //printf("function:%s line:%d ok!\r\n",__FUNCTION__,__LINE__);
     ssl->handshake->calc_finished(ssl, ssl->out_msg + 4, ssl->conf->endpoint);
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
     /*
      * RFC 5246 7.4.9 (Page 63) says 12 is the default length and ciphersuites
@@ -3536,7 +3536,7 @@ int mbedtls_ssl_write_finished(mbedtls_ssl_context *ssl)
 
     MBEDTLS_SSL_DEBUG_MSG(2, ("<= write finished"));
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
     return 0;
 }
@@ -3563,18 +3563,18 @@ int mbedtls_ssl_parse_finished(mbedtls_ssl_context *ssl)
 #endif
     hash_len = 12;
 
-    printf("%s %d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("%s %d ok!\r\n", __FUNCTION__, __LINE__);
 
     ssl->handshake->calc_finished(ssl, buf, ssl->conf->endpoint ^ 1);
 
-    printf("%s %d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("%s %d ok!\r\n", __FUNCTION__, __LINE__);
 
     if ((ret = mbedtls_ssl_read_record(ssl, 1)) != 0) {
         MBEDTLS_SSL_DEBUG_RET(1, "mbedtls_ssl_read_record", ret);
         goto exit;
     }
 
-    printf("%s %d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("%s %d ok!\r\n", __FUNCTION__, __LINE__);
 
     if (ssl->in_msgtype != MBEDTLS_SSL_MSG_HANDSHAKE) {
         MBEDTLS_SSL_DEBUG_MSG(1, ("bad finished message"));
@@ -3583,7 +3583,8 @@ int mbedtls_ssl_parse_finished(mbedtls_ssl_context *ssl)
         ret = MBEDTLS_ERR_SSL_UNEXPECTED_MESSAGE;
         goto exit;
     }
-    if (ssl->session_in->ciphersuite !=4 && ssl->session_in->ciphersuite != 0x2f && ssl->session_in->ciphersuite != 0x35){
+    //if (ssl->session_in->ciphersuite !=4 && ssl->session_in->ciphersuite != 0x2f && ssl->session_in->ciphersuite != 0x35)
+    {
 
         if (ssl->in_msg[0] != MBEDTLS_SSL_HS_FINISHED ||
             ssl->in_hslen  != mbedtls_ssl_hs_hdr_len(ssl) + hash_len) {
@@ -3635,7 +3636,7 @@ int mbedtls_ssl_parse_finished(mbedtls_ssl_context *ssl)
 exit:
     mbedtls_platform_zeroize(buf, hash_len);
 
-    printf("%s ok!\r\n", __FUNCTION__);
+    //printf("%s ok!\r\n", __FUNCTION__);
     return ret;
 }
 
@@ -4132,6 +4133,12 @@ void mbedtls_ssl_conf_dbg(mbedtls_ssl_config *conf,
 {
     conf->f_dbg      = f_dbg;
     conf->p_dbg      = p_dbg;
+}
+
+void mbedtls_ssl_conf_version(mbedtls_ssl_config* conf, int ver)
+{
+    conf->min_minor_ver = ver;
+    conf->max_minor_ver = ver;
 }
 
 void mbedtls_ssl_set_bio(mbedtls_ssl_context *ssl,
@@ -6918,7 +6925,7 @@ static const mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
  * Load default in mbedtls_ssl_config
  */
 int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
-                                int endpoint, int transport, int preset)
+                                int endpoint, int transport, int preset,int tlsv10)
 {
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -7054,7 +7061,7 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
                 conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
                     conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
                         conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
-                            mbedtls_ssl_list_ciphersuites();
+                            mbedtls_ssl_list_ciphersuites2(tlsv10);
 
 #if defined(MBEDTLS_X509_CRT_PARSE_C)
             conf->cert_profile = &mbedtls_x509_crt_profile_default;
@@ -7737,14 +7744,14 @@ unsigned int  sub_80C0760(__m128i* a1, __m128i* a2, __m128i* a3);
 
 unsigned int  sub_80C07D0(__m128i* a1,  __m128i* a2, __m128i* a3);
 
-unsigned int  sub_814B270(int* session_key, const mbedtls_ssl_context* ssl, unsigned int* a2, char* a3, int a4);
+unsigned int  sub_814B270(int* iv,  char*key, unsigned int* a2, char* a3, int a4);
 
-unsigned int  sub_814B370(char* session_key, const mbedtls_ssl_context* ssl, __m128i* a2, char* a3, int a4);
+unsigned int  sub_814B370(char* iv,  char* key, __m128i* a2, char* a3, int a4);
 
 unsigned int  sub_80C2EE0(unsigned short* a1, int a2);
 
-unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3);
-unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3);
+unsigned int  sub_80C2CC0(_DWORD* a1,   char* key, char* a_2, int a3);
+unsigned int  sub_80C2D80(char* a1,   char* key, char* a_2, int a3);
 void myAesEncrypt(const mbedtls_ssl_context* ssl, char* data, int size);
 void myAesDecrypt(const mbedtls_ssl_context* ssl, char* data, int size);
 
@@ -8374,7 +8381,9 @@ unsigned int  sub_80C0760( __m128i* a1,  __m128i* a2, __m128i* a3)
 
     _mm_maskmoveu_si128(a1[32], mask, (char*)&v3);
     v3 = v3 >> 32;
-
+    if (v3 != 9) {
+        printf("error\r\n");
+    }
     __m128i _XMM0 = _mm_xor_si128(_mm_loadu_si128(a2), _mm_loadu_si128(a1));
     __m128i _XMM1;
     v5 = a1 + 1;
@@ -8442,6 +8451,9 @@ unsigned int  sub_80C07D0( __m128i* a1,  __m128i* a2, __m128i* a3)
 
     _mm_maskmoveu_si128(a1[32], mask,(char*) &v3);
     v3 = v3 >> 32;
+    if (v3 != 9) {
+        printf("error\r\n");
+    }
 
     _XMM0 = _mm_xor_si128(_mm_loadu_si128(a2), _mm_loadu_si128(a1 + 16));
     v5 = a1 + 17;
@@ -8493,7 +8505,7 @@ unsigned int  sub_80C07D0( __m128i* a1,  __m128i* a2, __m128i* a3)
     return 0;
 }
 
-unsigned int  sub_814B270( int* session_key, const mbedtls_ssl_context* ssl, unsigned int* a2,char* a3, int a4)
+unsigned int  sub_814B270( int* iv,  char *key, unsigned int* a2,char* a3, int a4)
 {
 #ifdef _WIN32
     char* v5; // ebp
@@ -8514,7 +8526,7 @@ unsigned int  sub_814B270( int* session_key, const mbedtls_ssl_context* ssl, uns
 #endif
 
 
-    v6 = (char*)session_key ;
+    v6 = (char*)iv ;
 
     v5 = a3;
 
@@ -8535,7 +8547,7 @@ unsigned int  sub_814B270( int* session_key, const mbedtls_ssl_context* ssl, uns
                     _mm_cvtsi32_si128(_byteswap_ulong(*(_DWORD*)(v6 + 12) ^ *(a2 - 1)))));
 
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
-            sub_80C0760((__m128i*)ssl->g_aes_enc_key, (__m128i*) session_key, (__m128i*) session_key);
+            sub_80C0760((__m128i*)key, (__m128i*) iv, (__m128i*) iv);
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
             v9 = _mm_unpacklo_epi64(
@@ -8574,7 +8586,7 @@ unsigned int  sub_814B270( int* session_key, const mbedtls_ssl_context* ssl, uns
 
 
 
-unsigned int  sub_814B370(char* session_key,const mbedtls_ssl_context* ssl, __m128i* a2, char* a3, int a4)
+unsigned int  sub_814B370(char* iv, char* key, __m128i* a2, char* a3, int a4)
 {
 
 #ifdef _WIN32
@@ -8601,12 +8613,12 @@ unsigned int  sub_814B370(char* session_key,const mbedtls_ssl_context* ssl, __m1
 
 #endif
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
-    v4 = session_key ;
+    v4 = iv ;
     if (a4 > 15)
     {
-        v12 = a3 + ((a4 - 16) & 0xffffffffFFFFFFF0) + 16;
+        v12 = a3 + (((long long)a4 - 16) & 0xffffffffFFFFFFF0) + 16;
         v6 =(char*) a3;
 
         //printf("a2:%p,a3:%p, v6:%p,v7:%p, a4:%p\r\n",&a2,a3,v6,&v7,a4);
@@ -8630,7 +8642,7 @@ unsigned int  sub_814B370(char* session_key,const mbedtls_ssl_context* ssl, __m1
                     _mm_cvtsi32_si128(_byteswap_ulong(lpdv7[3]))));
 
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
-            sub_80C07D0((__m128i*)ssl->g_aes_dec_key, (__m128i*) &v13, (__m128i*) &v13);
+            sub_80C07D0((__m128i*)key, (__m128i*) &v13, (__m128i*) &v13);
             //(*(void(**)(int, __m128i*, __m128i*))(v4 + 4))(v4, &v13, &v13);
             //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
 
@@ -8656,7 +8668,7 @@ unsigned int  sub_814B370(char* session_key,const mbedtls_ssl_context* ssl, __m1
         } while (v12 != v6);
     }
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
     return 0;
 }
 
@@ -8797,13 +8809,13 @@ unsigned int  sub_80C2EE0(unsigned short * a1, int a2)
 
 
 
-unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3)
+unsigned int  sub_80C2CC0(_DWORD* a1,   char* key, char* a_2, int a3)
 {
     _DWORD* v4; // eax
     _DWORD* v5; // ebx
 
-    char* buffer = (char*)malloc(a3 + 0x1000);
-    uintptr_t tmp = ((( uintptr_t )buffer + 0x10) & 0xffffffffffffff00);
+    char* buffer = (char*)malloc((long long)a3 + 0x1000);
+    uintptr_t tmp = ((( uintptr_t )buffer + 0x100) & 0xffffffffffffff00);
     char* buf = (char*)tmp;
     if (buf == 0) {
         return 0;
@@ -8811,7 +8823,7 @@ unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2
     memcpy(buf, a_2, a3);
     char* a2 = buf;
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
     
     v4 = a1 ;
     if (a2 < a2 + a3)
@@ -8825,13 +8837,13 @@ unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2
             v5[3] ^= v4[3];
 
             //off_81D7214(a1 + 10, v5, v5);
-            sub_80C0760((__m128i*)ssl->g_aes_enc_key, (__m128i*)v5, (__m128i*)v5);
+            sub_80C0760((__m128i*)key, (__m128i*)v5, (__m128i*)v5);
 
             v4 = v5;
             v5 += 4;
         } while ((char*)v5 < a2 + a3);
 
-        v4 = (_DWORD*)(a2 + ((a3 - 1) & 0xffffffffFFFFFFF0));
+        v4 = (_DWORD*)(a2 + (((long long)a3 - 1) & 0xffffffffFFFFFFF0));
     }
     a1[0] = *v4;
     a1[1] = v4[1];
@@ -8841,14 +8853,14 @@ unsigned int  sub_80C2CC0(_DWORD* a1, const  mbedtls_ssl_context* ssl, char* a_2
     memcpy(a_2, buf, a3);
     free(buffer);
 
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
     return 0;
 }
 
 
 
 
-unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, int a3)
+unsigned int  sub_80C2D80(char* a1,   char* key, char* a_2, int a3)
 {
 #ifdef _WIN32
     __m128i* v4; // esi
@@ -8856,7 +8868,7 @@ unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, 
     _DWORD* v6; // edi
     char* v7; // ebx
     __m128i v8; // [esp+0h] [ebp-4Ch]
-//    __m128i tmp;
+    __m128i tmp128;
 #elif defined __linux__
     __m128i* v4 __attribute__((aligned(16))); // esi
     char* v5 __attribute__((aligned(16))); // ebp
@@ -8869,8 +8881,8 @@ unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, 
 #endif
 
 
-    void* buffer = (void*)malloc(a3 + 0x1000);
-    uintptr_t tmp = (((uintptr_t)buffer + 0x10) & 0xffffffffffffff00);
+    char* buffer = (char*)malloc((long long)a3 + 0x1000);
+    uintptr_t tmp = (((uintptr_t)buffer + 0x100) & 0xffffffffffffff00);
     char* buf = (char*)tmp;
     if (buf == 0) {
         return 0;
@@ -8899,7 +8911,7 @@ unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, 
         *(_DWORD*)(a1 + 8) = lpdv4[2];
         *(_DWORD*)(a1 + 12) = lpdv4[3];
 
-        v7 = (char*)ssl->g_aes_dec_key;
+        v7 = (char*)key;
 
         v5 = a2 + a3 - 32;
         if (v5 < a2)
@@ -8934,22 +8946,22 @@ unsigned int  sub_80C2D80(char* a1, const  mbedtls_ssl_context* ssl, char* a_2, 
 
     memcpy(a_2, buf, a3);
     free(buffer);
-
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
+    //buffer = 0;
+    //printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
     return 0;
 }
 
 
 void myAesEncrypt(const mbedtls_ssl_context* ssl, char* data, int size) {
 
-    sub_814B270((int*)ssl->g_aes_enc_iv, ssl, (unsigned int*)data, data, size);
+    sub_814B270((int*)ssl->g_aes_enc_iv, (char*)ssl->g_aes_enc_key, (unsigned int*)data, data, size);
     return;
 }
 
 
 
 void myAesDecrypt(const mbedtls_ssl_context* ssl, char* data, int size) {
-    sub_814B370((char*)ssl->g_aes_dec_iv, ssl,(__m128i*) data, data, size);
+    sub_814B370((char*)ssl->g_aes_dec_iv, (char*)ssl->g_aes_dec_key,(__m128i*) data, data, size);
 }
 
 
@@ -9033,7 +9045,7 @@ void myAesImc_new(__m128i* a1, unsigned char* a2, int a3) {
     const __m128i* v5; // edx
 
     v4 = a3 - 1;
-    v5 = (const __m128i*)(16 * a3 + a2);
+    v5 = (const __m128i*)(16 * (long long)a3 + a2);
     *a1 = _mm_loadu_si128(v5);
     do
     {
@@ -9196,27 +9208,67 @@ int  ljgLog(const char* format, ...) {
 
 void myAesSetKey(const mbedtls_ssl_context* ssl,unsigned char* random) {
 
-    //unsigned char origin[64] = { 0x3b,0x8e,0xf7,0x55,0x58,0xf2,0x77,0xc2,0x5a,0x42,0x0b,0x87,0x98,0x10,0x10,0xbd, 0x0d,0x09,0x02,0xe4,0x01,0x32,0xcb,0xfb,0xa2,0xc9,0xde,0x77,0x96,0x16,0xaf,0x44 };
-
     unsigned char key[64] = { 0 };
 
     memcpy(key, (char*)random + 56, 16);
 
+    memset((char*)ssl->g_aes_enc_key, 0, sizeof(ssl->g_aes_enc_key));
     int* fv = (int*)((char*)ssl->g_aes_enc_key + 0x204);
     *fv = 9;
     aes_init_key(key, (__m128i*)ssl->g_aes_enc_key);
     //myAesKeyGen_asm(ssl->g_aes_enc_key, key);
     myAesImc_new((__m128i*)((char*)ssl->g_aes_enc_key + 0x100), (unsigned char*)ssl->g_aes_enc_key, *fv + 1);
 
+    memset((char*)ssl->g_aes_dec_key, 0, sizeof(ssl->g_aes_dec_key));
     fv = (int*)((char*)ssl->g_aes_dec_key + 0x204);
     *fv = 9;
     aes_init_key(key, (__m128i*)ssl->g_aes_dec_key);
     //myAesKeyGen_asm(ssl->g_aes_dec_key, key);
     myAesImc_new( (__m128i*)( (char*)ssl->g_aes_dec_key + 0x100), (unsigned char*)ssl->g_aes_dec_key, *fv + 1);
+    
+    if (ssl->conf->endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        memcpy((char*)ssl->g_aes_dec_iv, (char*)random + 72, 16);
 
-    memcpy((char*)ssl->g_aes_dec_iv, (char*)random + 104 - 16, 16);
+        memcpy((char*)ssl->g_aes_enc_iv, (char*)random + 88, 16);
+    }
+    else {
 
-    memcpy((char*)ssl->g_aes_enc_iv, (char*)random + 104 - 32, 16);
+        memcpy((char*)ssl->g_aes_dec_iv, (char*)random + 104 - 16, 16);
+
+        memcpy((char*)ssl->g_aes_enc_iv, (char*)random + 104 - 32, 16);
+    }
+}
+
+
+
+int myAesClientHello(char* buf) {
+
+    char key3[64];
+    char* v17 = buf;
+    char* sessionkey = buf + 39;
+    unsigned char key1[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
+    unsigned char key2[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
+
+    unsigned short v27 = *(unsigned __int16*)(v17 + 25);
+    v27 = (*(unsigned short*)(v17 + 29) ^ v27) & 0xff;
+    int v28 = (unsigned __int16)(*(_WORD*)(v17 + 13) ^ *(_WORD*)(v17 + 20));
+    int v29 = (unsigned __int16)v27;
+    int v30 = v28 | (v27 << 16);
+
+    int v31 = *(unsigned __int8*)(v17 + 26);
+    unsigned __int8* v32 = (_BYTE*)(v17 + 6);
+    int v33 = 31;
+    do
+    {
+        unsigned char v34 = *v32++ ^ v31 ^ v33;
+        v31 += 23;
+        key3[v33] = v34;
+        unsigned char v35 = *(_BYTE*)(key1 + v33) ^ v34;
+        *(_BYTE*)(key1 + v33) = v35;
+        *(_BYTE*)(key2 + v33) = v35;
+    } while (v33-- != 0);
+
+    return v27;
 }
 
 
@@ -9283,83 +9335,7 @@ void testmodule4() {
 }
 
 
-void myAesClientHello(char* buf) {
 
-#if 0
-    char* key3 = g_backup_key;
-    char* v17 = buf;
-    char* sessionkey = buf + 39;
-    unsigned char key1[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
-    unsigned char key2[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
-
-    unsigned short v27 = *(unsigned __int16*)(v17 + 25);
-    v27 = (*(unsigned short*)(v17 + 29) ^ v27) & 0xff;
-    int v28 = (unsigned __int16)(*(_WORD*)(v17 + 13) ^ *(_WORD*)(v17 + 20));
-    int v29 = (unsigned __int16)v27;
-    int v30 = v28 | (v27 << 16);
-
-    int v31 = *(unsigned __int8*)(v17 + 26);
-    unsigned __int8* v32 = (_BYTE*)(v17 + 6);
-    int v33 = 31;
-    do
-    {
-        unsigned char v34 = *v32++ ^ v31 ^ v33;
-        v31 += 23;
-        key3[v33] = v34;
-        unsigned char v35 = *(_BYTE*)(key1 + v33) ^ v34;
-        *(_BYTE*)(key1 + v33) = v35;
-        *(_BYTE*)(key2 + v33) = v35;
-    } while (v33-- != 0);
-#else
-
-    printf("function:%s line:%d ok!\r\n", __FUNCTION__, __LINE__);
-
-    char* buf1 = malloc(0x1000);
-    char* buf2 = malloc(0x1000);
-
-    char* buf3 = malloc(0x1000);
-    char* buf4 = malloc(0x1000);
-    __m128i* g_aes_dec_key = (__m128i*)(((long long)buf1 + 0x100) & 0xffffffffffffff00);
-    __m128i* g_aes_enc_key = (__m128i*)(((long long)buf2 + 0x100) & 0xffffffffffffff00);
-    unsigned char * g_aes_dec_iv= (((long long)buf3 + 0x100) & 0xffffffffffffff00);
-    unsigned char *g_aes_enc_iv= (((long long)buf4 + 0x100) & 0xffffffffffffff00);
-
-    unsigned char key1[64] = {
-    0x1C, 0x5D, 0xB1, 0x45, 0xA5, 0xD9, 0x42, 0x11, 0xBA, 0xF3, 0x3A, 0xED, 0xF4, 0x11, 0x09, 0xA6
-    };
-    unsigned char key2[64] = { 0x3b,0x8e,0xf7,0x55,0x58,0xf2,0x77,0xc2,0x5a,0x42,0x0b,0x87,0x98,0x10,0x10,0xbd,
-0x0d,0x09,0x02,0xe4,0x01,0x32,0xcb,0xfb,0xa2,0xc9,0xde,0x77,0x96,0x16,0xaf,0x44 };
-
-    unsigned char* strsk = "\xf2\x64\xa9\x1b\xb5\x19\x22\x2b\xa1\x1b\xd8\xf0\x3b\x80\xf0\x95";
-    char* addr = malloc(0x1000);
-    //char* sessionkey = (char*)((int)(addr + 0x100) & 0xffffff00);
-    //memcpy(sessionkey, strsk, 16);
-
-    //unsigned char key3[64] = "\xbf\x44\xd0\x19\x20\x5d\x11\x5f\x8e\xdd\x18\x3f\xd3\x10\xd2\xe1";
-    //memcpy(g_aes_dec_iv, key3, 16);
-#endif
-
-    /*
-    int* fv = (int*)((char*)g_aes_enc_key + 0x204);
-    *fv = 9;
-    aes_init_key(key1,g_aes_enc_key);
-    int k = *fv + 1;
-    myAesImc_new(((char*)g_aes_enc_key) + 0x100, g_aes_enc_key, k);
-
-    fv = (int*)((char*)g_aes_dec_key + 0x204);
-    *fv = 9;
-    aes_init_key(key1, g_aes_dec_key);
-    k = *fv + 1;
-    myAesImc_new(((char*)g_aes_dec_key) + 0x100, g_aes_dec_key, k);
-    
-
-    char* testdata =
-        "\x11\x43\xfc\x74\x25\x55\x91\x84\x10\xc6\x10\x38\x06\x64\x50\x1e"
-        "\x9d\x09\x4b\x05\xf9\xf9\xf5\x93\xf8\xbf\x78\xa3\x88\x0f\xee\xa4"
-        "\x12\x2b\x67\x20\x54\x1d\x82\x84\xe9\xae\xc2\xbe\x99\x8c\x00\xd4";
-*/
-
-}
 
 
 

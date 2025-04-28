@@ -2205,6 +2205,41 @@ static int ciphersuite_is_removed(const mbedtls_ssl_ciphersuite_t *cs_info)
     return 0;
 }
 
+
+const int* mbedtls_ssl_list_ciphersuites2(int tlsv10)
+{
+    /*
+     * On initial call filter out all ciphersuites not supported by current
+     * build based on presence in the ciphersuite_definitions.
+     */
+    if (supported_init == 0) {
+        const int* p;
+        int* q;
+
+        for (p = ciphersuite_preference, q = supported_ciphersuites;
+            *p != 0 && q < supported_ciphersuites + MAX_CIPHERSUITES - 1;
+            p++) {
+            const mbedtls_ssl_ciphersuite_t* cs_info;
+            if ((cs_info = mbedtls_ssl_ciphersuite_from_id(*p)) != NULL &&
+                !ciphersuite_is_removed(cs_info)) {
+                if (tlsv10) {
+                    if (strcmp(cs_info->name, "TLS-RSA-WITH-AES-128-CBC-SHA") == 0) {
+                        *(q++) = *p;
+                    }
+                }
+                else {
+                    *(q++) = *p;
+                }
+            }
+        }
+        *q = 0;
+
+        supported_init = 1;
+    }
+
+    return supported_ciphersuites;
+}
+
 const int *mbedtls_ssl_list_ciphersuites(void)
 {
     /*

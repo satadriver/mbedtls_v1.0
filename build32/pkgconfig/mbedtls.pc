@@ -1,4 +1,4 @@
-prefix=/root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/build32
+prefix=/root/ljg/gitrepoExt2_v1.7.2/build32
 includedir=${prefix}/include
 libdir=${prefix}/lib
 

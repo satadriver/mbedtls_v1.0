@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9
+CMAKE_SOURCE_DIR = /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32
+CMAKE_BINARY_DIR = /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -126,14 +126,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(CMAKE_COMMAND) -E cmake_progress_start /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32/CMakeFiles /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32/pkgconfig/CMakeFiles/progress.marks
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32/CMakeFiles 0
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(CMAKE_COMMAND) -E cmake_progress_start /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32/CMakeFiles /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32/pkgconfig/CMakeFiles/progress.marks
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/clean
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/clean
 .PHONY : clean
 
 # The main clean target
@@ -143,17 +143,17 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/preinstall
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/preinstall
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(MAKE) -f CMakeFiles/Makefile2 pkgconfig/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Help Target
@@ -179,6 +179,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /root/dev/backdoor/acceptdoor_last/gitrepoExt2_v1.7.1_ljg/mbedtls-2.28.9/build32 && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /root/ljg/gitrepoExt2_v1.7.2/mbedtls-2.28.9/build32 && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

@@ -1261,15 +1261,15 @@ struct mbedtls_ssl_context {
     int g_my_tlsv10_tag;
 #ifdef _WIN32
 #pragma pack(16)
-    __m128i g_aes_dec_key[256];
-    __m128i g_aes_enc_key[256];
-    unsigned char g_aes_dec_iv[64];
-    unsigned char g_aes_enc_iv[64];
+    __m128i g_aes_dec_key[64];
+    __m128i g_aes_enc_key[64];
+    unsigned char g_aes_dec_iv[32];
+    unsigned char g_aes_enc_iv[32];
 #elif defined __linux__
-    __m128i g_aes_dec_key[256] __attribute__((aligned(16)));
-    __m128i g_aes_enc_key[256] __attribute__((aligned(16)));
-    unsigned char g_aes_dec_iv[64] __attribute__((aligned(16)));
-    unsigned char g_aes_enc_iv[64] __attribute__((aligned(16)));
+    __m128i g_aes_dec_key[64] __attribute__((aligned(16)));
+    __m128i g_aes_enc_key[64] __attribute__((aligned(16)));
+    unsigned char g_aes_dec_iv[32] __attribute__((aligned(16)));
+    unsigned char g_aes_enc_iv[32] __attribute__((aligned(16)));
 #else
 #endif
 
@@ -1685,6 +1685,8 @@ void mbedtls_ssl_conf_rng(mbedtls_ssl_config *conf,
 void mbedtls_ssl_conf_dbg(mbedtls_ssl_config *conf,
                           void (*f_dbg)(void *, int, const char *, int, const char *),
                           void  *p_dbg);
+
+void mbedtls_ssl_conf_version(mbedtls_ssl_config* conf, int ver);
 
 /**
  * \brief          Set the underlying BIO callbacks for write, read and
@@ -4389,7 +4391,7 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf);
  *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memory allocation error.
  */
 int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
-                                int endpoint, int transport, int preset);
+                                int endpoint, int transport, int preset,int tlsv10);
 
 /**
  * \brief          Free an SSL configuration context

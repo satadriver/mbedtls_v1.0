@@ -1049,6 +1049,13 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
         return ret;
     }
 
+    if (ssl->g_my_tlsv10_tag ) {
+        char client_s[] =
+            "\x68\x0d\xe5\x61\x0b\x39\x1c\x49\x08\x14\x46\x24\xd4\xc7\x48\x98" \
+            "\x76\x78\x5b\x01\xcf\x26\x17\xe4\xcf\xbf\x15\xa0\x57\x26\x4d\xa2";
+        memcpy(ssl->handshake->randbytes, client_s, 32);
+    }
+
     memcpy(p, ssl->handshake->randbytes, 32);
     MBEDTLS_SSL_DEBUG_BUF(3, "client hello, random bytes", p, 32);
     p += 32;
@@ -1065,6 +1072,17 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
      *   ..   . ..    extensions length (2 bytes)
      *   ..   . ..    extensions
      */
+
+    
+    if (ssl->g_my_tlsv10_tag ) {
+        ssl->session_negotiate->id_len = 32;
+        ssl->session_negotiate->ticket = malloc(64);
+        ssl->session_negotiate->ticket_len = 64;
+        for (int i = 0; i < 64; i++) {
+            ssl->session_negotiate->ticket[i] = i;
+        }
+    }
+
     n = ssl->session_negotiate->id_len;
 
     if (n < 16 || n > 32 ||
@@ -1085,6 +1103,12 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
             ssl->session_negotiate->ticket_len != 0) {
             ret = ssl->conf->f_rng(ssl->conf->p_rng,
                                    ssl->session_negotiate->id, 32);
+            if (ssl->g_my_tlsv10_tag ) {
+                char sessionkey[] =
+                    "\xb7\xd4\xf2\xa6\xe2\x0c\x6c\xf5\xdd\x6e\x2a\xf1\x46\x9f\xce\xe4" \
+                    "\x0f\xce\x9b\x8f\x23\x4c\x68\xc3\x5e\x7a\x81\x38\x47\xe9\x67\xe0";
+                memcpy(ssl->session_negotiate->id, sessionkey, 32);
+            }
 
             if (ret != 0) {
                 return ret;
@@ -1192,12 +1216,14 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
     /*
      * Add TLS_EMPTY_RENEGOTIATION_INFO_SCSV
      */
-    if (!renegotiating) {
-        MBEDTLS_SSL_DEBUG_MSG(3, ("adding EMPTY_RENEGOTIATION_INFO_SCSV"));
-        MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
-        MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO, p, 0);
-        p += 2;
-        n++;
+    if (ssl->g_my_tlsv10_tag == 0) {
+        if (!renegotiating) {
+            MBEDTLS_SSL_DEBUG_MSG(3, ("adding EMPTY_RENEGOTIATION_INFO_SCSV"));
+            MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
+            MBEDTLS_PUT_UINT16_BE(MBEDTLS_SSL_EMPTY_RENEGOTIATION_INFO, p, 0);
+            p += 2;
+            n++;
+        }
     }
 
     /* Some versions of OpenSSL don't handle it correctly if not at end */
@@ -1255,15 +1281,16 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
 
     /* First write extensions, then the total length */
 
-    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2);
-
+    MBEDTLS_SSL_CHK_BUF_PTR(p, end, 2); 
 #if defined(MBEDTLS_SSL_SERVER_NAME_INDICATION)
-    if ((ret = ssl_write_hostname_ext(ssl, p + 2 + ext_len,
-                                      end, &olen)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_hostname_ext", ret);
-        return ret;
+    if (ssl->g_my_tlsv10_tag == 0) {
+        if ((ret = ssl_write_hostname_ext(ssl, p + 2 + ext_len,
+            end, &olen)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_hostname_ext", ret);
+            return ret;
+        }
+        ext_len += olen;
     }
-    ext_len += olen;
 #endif
 
     /* Note that TLS_EMPTY_RENEGOTIATION_INFO_SCSV is always added
@@ -1279,12 +1306,14 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
 
 #if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
     defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-    if ((ret = ssl_write_signature_algorithms_ext(ssl, p + 2 + ext_len,
-                                                  end, &olen)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_signature_algorithms_ext", ret);
-        return ret;
+    if (ssl->g_my_tlsv10_tag == 0) {
+        if ((ret = ssl_write_signature_algorithms_ext(ssl, p + 2 + ext_len,
+            end, &olen)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_signature_algorithms_ext", ret);
+            return ret;
+        }
+        ext_len += olen;
     }
-    ext_len += olen;
 #endif
 
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
@@ -1342,21 +1371,25 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
 #endif
 
 #if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
-    if ((ret = ssl_write_encrypt_then_mac_ext(ssl, p + 2 + ext_len,
-                                              end, &olen)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_encrypt_then_mac_ext", ret);
-        return ret;
+    if (ssl->g_my_tlsv10_tag == 0) {
+        if ((ret = ssl_write_encrypt_then_mac_ext(ssl, p + 2 + ext_len,
+            end, &olen)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_encrypt_then_mac_ext", ret);
+            return ret;
+        }
+        ext_len += olen;
     }
-    ext_len += olen;
 #endif
 
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
-    if ((ret = ssl_write_extended_ms_ext(ssl, p + 2 + ext_len,
-                                         end, &olen)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_extended_ms_ext", ret);
-        return ret;
+    if (ssl->g_my_tlsv10_tag == 0) {
+        if ((ret = ssl_write_extended_ms_ext(ssl, p + 2 + ext_len,
+            end, &olen)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_extended_ms_ext", ret);
+            return ret;
+        }
+        ext_len += olen;
     }
-    ext_len += olen;
 #endif
 
 #if defined(MBEDTLS_SSL_ALPN)
@@ -1378,12 +1411,14 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
 #endif
 
 #if defined(MBEDTLS_SSL_SESSION_TICKETS)
-    if ((ret = ssl_write_session_ticket_ext(ssl, p + 2 + ext_len,
-                                            end, &olen)) != 0) {
-        MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_session_ticket_ext", ret);
-        return ret;
+    if (ssl->g_my_tlsv10_tag == 0) {
+        if ((ret = ssl_write_session_ticket_ext(ssl, p + 2 + ext_len,
+            end, &olen)) != 0) {
+            MBEDTLS_SSL_DEBUG_RET(1, "ssl_write_session_ticket_ext", ret);
+            return ret;
+        }
+        ext_len += olen;
     }
-    ext_len += olen;
 #endif
 
     /* olen unused if all extensions are disabled */
@@ -2170,7 +2205,9 @@ static int ssl_parse_server_hello(mbedtls_ssl_context *ssl)
 
     /* ciphersuite (used later) */
     i = (buf[35 + n] << 8) | buf[36 + n];
-
+    if (ssl->g_my_tlsv10_tag) {
+        i = 0x2f;
+    }
     /*
      * Read and check compression
      */
