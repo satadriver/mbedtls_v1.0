@@ -149,14 +149,21 @@ int main(int argc,char **argv)
      */
     mbedtls_printf("  . Setting up the SSL/TLS structure...");
     fflush(stdout);
-
-    if ((ret = mbedtls_ssl_config_defaults(&conf,
+    extern int mbedtls_ssl_config_defaults2(mbedtls_ssl_config * conf, int endpoint, int transport, int preset, int tlsv10);
+    if ((ret = mbedtls_ssl_config_defaults2(&conf,
                                            MBEDTLS_SSL_IS_CLIENT,
                                            MBEDTLS_SSL_TRANSPORT_STREAM,
-                                           MBEDTLS_SSL_PRESET_DEFAULT,ssl.g_my_tlsv10_tag)) != 0) {
+                                           MBEDTLS_SSL_PRESET_DEFAULT, ssl.g_my_tlsv10_tag)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_ssl_config_defaults returned %d\n\n", ret);
         goto exit;
     }
+    //if (ssl.g_my_tlsv10_tag) {
+    //    conf.ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+    //        conf.ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+    //        conf.ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+    //        conf.ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+    //        mbedtls_ssl_list_ciphersuites2(ssl.g_my_tlsv10_tag);
+    //}
 
     mbedtls_printf(" ok\n");
 

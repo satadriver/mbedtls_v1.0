@@ -6924,7 +6924,7 @@ static const mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
 /*
  * Load default in mbedtls_ssl_config
  */
-int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
+int mbedtls_ssl_config_defaults2(mbedtls_ssl_config *conf,
                                 int endpoint, int transport, int preset,int tlsv10)
 {
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
@@ -7077,6 +7077,165 @@ int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
 
 #if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
             conf->dhm_min_bitlen = 1024;
+#endif
+    }
+
+    return 0;
+}
+
+int mbedtls_ssl_config_defaults(mbedtls_ssl_config* conf,
+    int endpoint, int transport, int preset)
+{
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+    int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+#endif
+
+    /* Use the functions here so that they are covered in tests,
+     * but otherwise access member directly for efficiency */
+    mbedtls_ssl_conf_endpoint(conf, endpoint);
+    mbedtls_ssl_conf_transport(conf, transport);
+
+    /*
+     * Things that are common to all presets
+     */
+#if defined(MBEDTLS_SSL_CLI_C)
+    if (endpoint == MBEDTLS_SSL_IS_CLIENT) {
+        conf->authmode = MBEDTLS_SSL_VERIFY_REQUIRED;
+#if defined(MBEDTLS_SSL_SESSION_TICKETS)
+        conf->session_tickets = MBEDTLS_SSL_SESSION_TICKETS_ENABLED;
+#endif
+    }
+#endif
+
+#if defined(MBEDTLS_ARC4_C)
+    conf->arc4_disabled = MBEDTLS_SSL_ARC4_DISABLED;
+    conf->arc4_disabled = 0;
+#endif
+
+#if defined(MBEDTLS_SSL_ENCRYPT_THEN_MAC)
+    conf->encrypt_then_mac = MBEDTLS_SSL_ETM_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
+    conf->extended_ms = MBEDTLS_SSL_EXTENDED_MS_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_CBC_RECORD_SPLITTING)
+    conf->cbc_record_splitting = MBEDTLS_SSL_CBC_RECORD_SPLITTING_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_HELLO_VERIFY) && defined(MBEDTLS_SSL_SRV_C)
+    conf->f_cookie_write = ssl_cookie_write_dummy;
+    conf->f_cookie_check = ssl_cookie_check_dummy;
+#endif
+
+#if defined(MBEDTLS_SSL_DTLS_ANTI_REPLAY)
+    conf->anti_replay = MBEDTLS_SSL_ANTI_REPLAY_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_SRV_C)
+    conf->cert_req_ca_list = MBEDTLS_SSL_CERT_REQ_CA_LIST_ENABLED;
+#endif
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+    conf->hs_timeout_min = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MIN;
+    conf->hs_timeout_max = MBEDTLS_SSL_DTLS_TIMEOUT_DFL_MAX;
+#endif
+
+#if defined(MBEDTLS_SSL_RENEGOTIATION)
+    conf->renego_max_records = MBEDTLS_SSL_RENEGO_MAX_RECORDS_DEFAULT;
+    memset(conf->renego_period, 0x00, 2);
+    memset(conf->renego_period + 2, 0xFF, 6);
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_SRV_C)
+    if (endpoint == MBEDTLS_SSL_IS_SERVER) {
+        const unsigned char dhm_p[] =
+            MBEDTLS_DHM_RFC3526_MODP_2048_P_BIN;
+        const unsigned char dhm_g[] =
+            MBEDTLS_DHM_RFC3526_MODP_2048_G_BIN;
+
+        if ((ret = mbedtls_ssl_conf_dh_param_bin(conf,
+            dhm_p, sizeof(dhm_p),
+            dhm_g, sizeof(dhm_g))) != 0) {
+            return ret;
+        }
+    }
+#endif
+
+    /*
+     * Preset-specific defaults
+     */
+    switch (preset) {
+        /*
+         * NSA Suite B
+         */
+    case MBEDTLS_SSL_PRESET_SUITEB:
+        conf->min_major_ver = MBEDTLS_SSL_MAJOR_VERSION_3;
+        conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_3; /* TLS 1.2 */
+        conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+        conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+        conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+            ssl_preset_suiteb_ciphersuites;
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        conf->cert_profile = &mbedtls_x509_crt_profile_suiteb;
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+        conf->sig_hashes = ssl_preset_suiteb_hashes;
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+        conf->curve_list = ssl_preset_suiteb_curves;
+#endif
+        break;
+
+        /*
+         * Default
+         */
+    default:
+        conf->min_major_ver = (MBEDTLS_SSL_MIN_MAJOR_VERSION >
+            MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION) ?
+            MBEDTLS_SSL_MIN_MAJOR_VERSION :
+            MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION;
+        conf->min_minor_ver = (MBEDTLS_SSL_MIN_MINOR_VERSION >
+            MBEDTLS_SSL_MIN_VALID_MINOR_VERSION) ?
+            MBEDTLS_SSL_MIN_MINOR_VERSION :
+            MBEDTLS_SSL_MIN_VALID_MINOR_VERSION;
+        conf->max_major_ver = MBEDTLS_SSL_MAX_MAJOR_VERSION;
+        conf->max_minor_ver = MBEDTLS_SSL_MAX_MINOR_VERSION;
+
+#if defined(MBEDTLS_SSL_PROTO_DTLS)
+        if (transport == MBEDTLS_SSL_TRANSPORT_DATAGRAM) {
+            conf->min_minor_ver = MBEDTLS_SSL_MINOR_VERSION_2;
+        }
+#endif
+
+        conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_0] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_1] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_2] =
+            conf->ciphersuite_list[MBEDTLS_SSL_MINOR_VERSION_3] =
+            mbedtls_ssl_list_ciphersuites();
+
+#if defined(MBEDTLS_X509_CRT_PARSE_C)
+        conf->cert_profile = &mbedtls_x509_crt_profile_default;
+#endif
+
+#if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
+        conf->sig_hashes = ssl_preset_default_hashes;
+#endif
+
+#if defined(MBEDTLS_ECP_C)
+        conf->curve_list = mbedtls_ecp_grp_id_list();
+#endif
+
+#if defined(MBEDTLS_DHM_C) && defined(MBEDTLS_SSL_CLI_C)
+        conf->dhm_min_bitlen = 1024;
 #endif
     }
 
@@ -7733,6 +7892,8 @@ int mbedtls_ssl_client_randbyts_setup(mbedtls_ssl_context *ssl, const unsigned c
 
 
 #define     _OWORD  __m128i
+
+int myAesClientHello(char* buf,char * key3);
 
 unsigned int _byteswap_ulong(unsigned int v);
 
@@ -9241,18 +9402,18 @@ void myAesSetKey(const mbedtls_ssl_context* ssl,unsigned char* random) {
 
 
 
-int myAesClientHello(char* buf) {
+int myAesClientHello(char* buf,char * key3) {
 
-    char key3[64];
+
     char* v17 = buf;
-    char* sessionkey = buf + 39;
+    //char* sessionkey = buf + 39;
     unsigned char key1[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
     unsigned char key2[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
 
     unsigned short v27 = *(unsigned __int16*)(v17 + 25);
     v27 = (*(unsigned short*)(v17 + 29) ^ v27) & 0xff;
     int v28 = (unsigned __int16)(*(_WORD*)(v17 + 13) ^ *(_WORD*)(v17 + 20));
-    int v29 = (unsigned __int16)v27;
+    //int v29 = (unsigned __int16)v27;
     int v30 = v28 | (v27 << 16);
 
     int v31 = *(unsigned __int8*)(v17 + 26);
@@ -9268,7 +9429,8 @@ int myAesClientHello(char* buf) {
         *(_BYTE*)(key2 + v33) = v35;
     } while (v33-- != 0);
 
-    return v27;
+    
+    return v30;
 }
 
 

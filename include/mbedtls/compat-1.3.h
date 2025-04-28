@@ -2329,6 +2329,7 @@
 #define ssl_key_cert mbedtls_ssl_key_cert
 #define ssl_legacy_renegotiation mbedtls_ssl_conf_legacy_renegotiation
 #define ssl_list_ciphersuites mbedtls_ssl_list_ciphersuites
+#define ssl_list_ciphersuites2 mbedtls_ssl_list_ciphersuites2
 #define ssl_md_alg_from_hash mbedtls_ssl_md_alg_from_hash
 #define ssl_optimize_checksum mbedtls_ssl_optimize_checksum
 #define ssl_own_cert mbedtls_ssl_own_cert

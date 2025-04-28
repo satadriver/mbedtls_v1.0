@@ -4390,8 +4390,11 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf);
  * \return         0 if successful, or
  *                 MBEDTLS_ERR_XXX_ALLOC_FAILED on memory allocation error.
  */
-int mbedtls_ssl_config_defaults(mbedtls_ssl_config *conf,
+int mbedtls_ssl_config_defaults2(mbedtls_ssl_config *conf,
                                 int endpoint, int transport, int preset,int tlsv10);
+
+int mbedtls_ssl_config_defaults(mbedtls_ssl_config* conf,
+    int endpoint, int transport, int preset);
 
 /**
  * \brief          Free an SSL configuration context

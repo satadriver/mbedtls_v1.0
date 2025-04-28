@@ -1078,7 +1078,7 @@ static int ssl_write_client_hello(mbedtls_ssl_context *ssl)
         ssl->session_negotiate->id_len = 32;
         ssl->session_negotiate->ticket = malloc(64);
         ssl->session_negotiate->ticket_len = 64;
-        for (int i = 0; i < 64; i++) {
+        for ( i = 0; i < 64; i++) {
             ssl->session_negotiate->ticket[i] = i;
         }
     }
