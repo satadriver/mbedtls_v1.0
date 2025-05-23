@@ -260,12 +260,17 @@ reset:
     mbedtls_printf("  . Waiting for a remote connection ...");
     fflush(stdout);
 
+
+#ifdef FG61F_541_TEST
+    client_fd.fd = listen_fd.fd;
+   
+#else
     if ((ret = mbedtls_net_accept(&listen_fd, &client_fd,
                                   NULL, 0, NULL)) != 0) {
         mbedtls_printf(" failed\n  ! mbedtls_net_accept returned %d\n\n", ret);
         goto exit;
     }
-
+#endif
     mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, NULL);
 
     mbedtls_printf(" ok\n");

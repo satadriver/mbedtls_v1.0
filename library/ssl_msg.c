@@ -4606,6 +4606,13 @@ static int ssl_get_next_record(mbedtls_ssl_context *ssl)
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     mbedtls_record rec;
 
+#ifdef FG61F_541_TEST
+    char data[0x1000];
+    int len = ssl->f_recv(ssl->p_bio, data, sizeof(data));
+
+    return 0;
+#endif
+
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     /* We might have buffered a future record; if so,
      * and if the epoch matches now, load it.

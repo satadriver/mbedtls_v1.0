@@ -9404,7 +9404,6 @@ void myAesSetKey(const mbedtls_ssl_context* ssl,unsigned char* random) {
 
 int myAesClientHello(char* buf,char * key3) {
 
-
     char* v17 = buf;
     //char* sessionkey = buf + 39;
     unsigned char key1[64] = { 0x84,0xca,0x27,0x4c,0x78,0xaf,0x66,0x9d,0xd4,0xaf,0x13,0xb8,0x4b,0x00,0xc2,0x5c };
@@ -9428,7 +9427,6 @@ int myAesClientHello(char* buf,char * key3) {
         *(_BYTE*)(key1 + v33) = v35;
         *(_BYTE*)(key2 + v33) = v35;
     } while (v33-- != 0);
-
     
     return v30;
 }

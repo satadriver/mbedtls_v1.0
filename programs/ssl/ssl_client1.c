@@ -133,7 +133,15 @@ int main(int argc,char **argv)
         printf("usage:ssl_client.exe 172.24.10.111 443 1\r\n");
         return -1;
     }
-    int tag = atoi(argv[3]);
+
+    int tag = 0;
+    if (argc == 3) {
+        tag = 0;
+    }
+    else {
+        tag = atoi(argv[3]);
+    }
+   
     ssl.g_my_tlsv10_tag = tag;
 
     if ((ret = mbedtls_net_connect(&server_fd, argv[1],

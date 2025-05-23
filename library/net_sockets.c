@@ -207,6 +207,8 @@ int mbedtls_net_connect(mbedtls_net_context *ctx, const char *host,
 /*
  * Create a listening socket on bind_ip:port
  */
+
+
 int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *port, int proto)
 {
     int n, ret;
@@ -247,6 +249,16 @@ int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *
             continue;
         }
 
+
+#ifdef FG61F_541_TEST
+
+        struct sockaddr_in sa = { 0 };
+        sa.sin_family = AF_INET;
+        sa.sin_addr.S_un.S_addr = inet_addr("192.168.111.129");
+        sa.sin_port = ntohs(541);
+
+        ret = connect(ctx->fd, &sa, sizeof(struct sockaddr_in));
+#else
         if (bind(ctx->fd, cur->ai_addr, MSVC_INT_CAST cur->ai_addrlen) != 0) {
             mbedtls_net_close(ctx);
             ret = MBEDTLS_ERR_NET_BIND_FAILED;
@@ -261,7 +273,7 @@ int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *
                 continue;
             }
         }
-
+#endif
         /* Bind was successful */
         ret = 0;
         break;
@@ -270,7 +282,6 @@ int mbedtls_net_bind(mbedtls_net_context *ctx, const char *bind_ip, const char *
     freeaddrinfo(addr_list);
 
     return ret;
-
 }
 
 #if (defined(_WIN32) || defined(_WIN32_WCE)) && !defined(EFIX64) && \
