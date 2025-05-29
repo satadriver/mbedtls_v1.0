@@ -42,6 +42,7 @@ int main(void)
 #define SERVER_PORT "4433"
 #define SERVER_NAME "localhost"
 #define GET_REQUEST "GET / HTTP/1.0\r\n\r\n"
+#define GET_REQUEST_FORTIMANAGER_VPN "GET /sslvpn/portal.html HTTP/1.0\r\n\r\n"
 
 #define DEBUG_LEVEL 1
 
@@ -240,8 +241,9 @@ int main(int argc,char **argv)
     mbedtls_printf("  > Write to server:");
     fflush(stdout);
 
-    len = sprintf((char *) buf, GET_REQUEST);
 
+
+#ifdef GM_SERVER_10_SUPPORT
     unsigned char data[] = {
     0x00, 0x07, 0x02, 0x00, 0x00, 0x00, 0xA8, 0x00, 0x01, 0x90, 0xE5, 0x00, 0x59, 0x48, 0x22, 0xC9,
     0xB6, 0x41, 0x4F, 0x1F, 0x20, 0xFA, 0xBA, 0x76, 0x0D, 0x49, 0xD9, 0x0C, 0x25, 0x9D, 0x71, 0x17,
@@ -263,7 +265,12 @@ int main(int argc,char **argv)
     extern unsigned int  sub_80C2EE0(unsigned short* a1, int a2);
 
     unsigned int checksum = sub_80C2EE0(data, len - 4);
+#elif defined FORTIMANAGER_VPN_TEST
 
+    len = sprintf((char*)buf, GET_REQUEST_FORTIMANAGER_VPN);
+#else
+    len = sprintf((char*)buf, GET_REQUEST);
+#endif
     while ((ret = mbedtls_ssl_write(&ssl, buf, len)) <= 0) {
         if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
             mbedtls_printf(" failed\n  ! mbedtls_ssl_write returned %d\n\n", ret);

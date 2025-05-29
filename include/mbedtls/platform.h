@@ -26,7 +26,9 @@
 #ifndef MBEDTLS_PLATFORM_H
 #define MBEDTLS_PLATFORM_H
 
-#define FG61F_541_TEST
+//#define FG61F_541_TEST
+#define FORTIMANAGER_VPN_TEST
+//#define GM_SERVER_10_SUPPORT
 
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include "mbedtls/config.h"
